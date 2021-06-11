@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
     ui->pairlist->addItems(pairlist);
     ui->pairlist->setCurrentText(pair);
+    QDate cd = QDate::currentDate();
+    cd = cd.addDays(-limit/day);
+    ui->message->setText("Date of lookback "+ cd.toString());
     ui->lookbackdays->setValue(limit/day);
     pair=ui->pairlist->currentText();
     do_download();
@@ -217,6 +220,9 @@ void MainWindow::on_lookbackdays_editingFinished()
         day=3;
     }
     limit = ui->lookbackdays->value()*day;
+    QDate cd = QDate::currentDate();
+    cd = cd.addDays(-limit/day);
+    ui->message->setText("Date of lookback "+ cd.toString());
     lowprice=0;
     highprice=0;
     do_download();
