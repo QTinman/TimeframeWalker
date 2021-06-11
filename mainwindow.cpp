@@ -218,6 +218,9 @@ void MainWindow::on_lookbackdays_editingFinished()
     } else if (ui->lookbackdays->value() >= 165 && ui->lookbackdays->value() <= 329) {
         timeframe = "8h";
         day=3;
+    } else {
+        timeframe = "1d";
+        day=1;
     }
     limit = ui->lookbackdays->value()*day;
     QDate cd = QDate::currentDate();
