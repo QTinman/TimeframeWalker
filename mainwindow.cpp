@@ -4,7 +4,7 @@
 QString appgroup="buysellmonitor";
 QString filename="candledata.json",pair="BTCUSDT",timeframe="1h";
 double lowprice, highprice;
-int limit=168;
+int limit=168,day=24;
 QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SKLUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XTZUSDT","XVGUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
 
 
@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
     ui->pairlist->addItems(pairlist);
     ui->pairlist->setCurrentText(pair);
-    ui->lookbackdays->setValue(limit/24);
+    ui->lookbackdays->setValue(limit/day);
     pair=ui->pairlist->currentText();
     do_download();
 
@@ -193,7 +193,7 @@ void MainWindow::replyFinished (QNetworkReply *reply)
 void MainWindow::on_pairlist_activated(int index)
 {
     pair = ui->pairlist->currentText();
-    limit = ui->lookbackdays->value()*24;
+    limit = ui->lookbackdays->value()*day;
     lowprice=0;
     highprice=0;
     do_download();
@@ -203,7 +203,20 @@ void MainWindow::on_pairlist_activated(int index)
 void MainWindow::on_lookbackdays_editingFinished()
 {
     pair = ui->pairlist->currentText();
-    limit = ui->lookbackdays->value()*24;
+    if (ui->lookbackdays->value() <= 41) {
+        timeframe = "1h";
+        day=24;
+    } else if (ui->lookbackdays->value() >= 42 && ui->lookbackdays->value() <= 82) {
+        timeframe = "2h";
+        day=12;
+    } else if (ui->lookbackdays->value() >= 83 && ui->lookbackdays->value() <= 164) {
+        timeframe = "4h";
+        day=6;
+    } else if (ui->lookbackdays->value() >= 165 && ui->lookbackdays->value() <= 329) {
+        timeframe = "8h";
+        day=3;
+    }
+    limit = ui->lookbackdays->value()*day;
     lowprice=0;
     highprice=0;
     do_download();
