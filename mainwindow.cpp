@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     enddate = QDateTime::currentDateTime().currentMSecsSinceEpoch();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
     cd = cd.addDays(-(limit/day)-today);
-    ui->message->setText("Date of lookback "+ cd.toString("dd MMM yy"));
+    ui->message->setText("Date of lookback "+ cd.toString("ddd d MMM yy"));
     ui->lookbackdays->setValue(limit/day);
     pair=ui->pairlist->currentText();
     do_download();
@@ -147,14 +147,14 @@ void MainWindow::process_json()
             double timestamp = jsonDoc[i][0].toDouble();
             QDateTime dt;
             dt.setMSecsSinceEpoch(timestamp);
-            QLow_date = dt.toString();
+            QLow_date = dt.toString("ddd d MMM yy");
         }
         if (highprice < high) {
             highprice=high;
             double timestamp = jsonDoc[i][0].toDouble();
             QDateTime dt;
             dt.setMSecsSinceEpoch(timestamp);
-            QHigh_date = dt.toString();
+            QHigh_date = dt.toString("ddd d MMM yy");
         }
 
     }
@@ -232,7 +232,7 @@ void MainWindow::refresh()
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
     cd = cd.addDays(-(limit/day)-today);
-    ui->message->setText("Date of lookback "+ cd.toString("dd MMM yy"));
+    ui->message->setText("Date of lookback "+ cd.toString("ddd d MMM yy"));
     lowprice=0;
     highprice=0;
     do_download();
