@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>421</width>
+    <width>424</width>
     <height>304</height>
    </rect>
   </property>
@@ -22,30 +22,27 @@
     <item row="0" column="0">
      <widget class="QPlainTextEdit" name="transferLog"/>
     </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="message">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
     <item row="2" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Pair list</string>
+         <string>Pair</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QComboBox" name="pairlist"/>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item>
        <widget class="QLabel" name="label_3">
@@ -61,17 +58,31 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Enddate</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDateEdit" name="enddate">
+        <property name="dateTime">
+         <datetime>
+          <hour>0</hour>
+          <minute>0</minute>
+          <second>0</second>
+          <year>2000</year>
+          <month>1</month>
+          <day>1</day>
+         </datetime>
+        </property>
+        <property name="displayFormat">
+         <string>dd.MM.yy</string>
+        </property>
+       </widget>
+      </item>
      </layout>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="message">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
@@ -80,7 +91,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>421</width>
+     <width>424</width>
      <height>23</height>
     </rect>
    </property>

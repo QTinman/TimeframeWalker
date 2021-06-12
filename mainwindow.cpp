@@ -4,8 +4,9 @@
 QString appgroup="buysellmonitor";
 QString filename="candledata.json",pair="BTCUSDT",timeframe="1h";
 double lowprice, highprice;
+long enddate;
 int limit=168,day=24;
-QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SKLUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XTZUSDT","XVGUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
+QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CAKEUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICPUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","KSMUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","PAXUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SHIBUSDT","SKLUSDT","SNXUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XRPUSDT","XTZUSDT","XVGUSDT","XVSUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -20,8 +21,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pairlist->addItems(pairlist);
     ui->pairlist->setCurrentText(pair);
     QDate cd = QDate::currentDate();
-    cd = cd.addDays(-limit/day);
-    ui->message->setText("Date of lookback "+ cd.toString());
+
+    ui->enddate->setDate(cd);
+    enddate = QDateTime::currentDateTime().currentMSecsSinceEpoch();
+    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
+    cd = cd.addDays(-(limit/day)-today);
+    ui->message->setText("Date of lookback "+ cd.toString("dd MMM yy"));
     ui->lookbackdays->setValue(limit/day);
     pair=ui->pairlist->currentText();
     do_download();
@@ -37,7 +42,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::do_download()
 {
-        QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit)));
+        QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit))+"&endTime="+QString::number(enddate));
         //QUrl url = QUrl(QString("https://www.binance.com/api/v3/depth?symbol=BTCUSDT"));
 
         QNetworkRequest request(url);
@@ -202,9 +207,9 @@ void MainWindow::on_pairlist_activated(int index)
     do_download();
 }
 
-
-void MainWindow::on_lookbackdays_editingFinished()
+void MainWindow::refresh()
 {
+    QDateTime edt=QDateTime(ui->enddate->date(),QTime::currentTime());
     pair = ui->pairlist->currentText();
     if (ui->lookbackdays->value() <= 41) {
         timeframe = "1h";
@@ -223,10 +228,23 @@ void MainWindow::on_lookbackdays_editingFinished()
         day=1;
     }
     limit = ui->lookbackdays->value()*day;
+    enddate = edt.toMSecsSinceEpoch();
     QDate cd = QDate::currentDate();
-    cd = cd.addDays(-limit/day);
-    ui->message->setText("Date of lookback "+ cd.toString());
+    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
+    cd = cd.addDays(-(limit/day)-today);
+    ui->message->setText("Date of lookback "+ cd.toString("dd MMM yy"));
     lowprice=0;
     highprice=0;
     do_download();
 }
+
+void MainWindow::on_lookbackdays_editingFinished()
+{
+    refresh();
+}
+
+void MainWindow::on_enddate_editingFinished()
+{
+    refresh();
+}
+

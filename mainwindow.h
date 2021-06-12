@@ -25,6 +25,7 @@ public:
     QVariant loadsettings(QString settings);
     void savesettings(QString settings, QVariant attr);
     bool readJsonFile(QString file_path, QVariantMap& result);
+    void refresh();
     ~MainWindow();
 
 public slots:
@@ -34,6 +35,8 @@ private slots:
     void on_pairlist_activated(int index);
 
     void on_lookbackdays_editingFinished();
+
+    void on_enddate_editingFinished();
 
 private:
     Ui::MainWindow *ui;
