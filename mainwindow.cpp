@@ -1,11 +1,12 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include <QAction>
 
 QString appgroup="buysellmonitor";
 QString filename="candledata.json",pair="BTCUSDT",timeframe="1h";
-double lowprice, highprice;
+
 long enddate;
-int limit=168,days=24;
+int limit=24,days=24;
 QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CAKEUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICPUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","KSMUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","PAXUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SHIBUSDT","SKLUSDT","SNXUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XRPUSDT","XTZUSDT","XVGUSDT","XVSUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
 
 
@@ -22,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pairlist->setCurrentText(pair);
     QDate cd = QDate::currentDate();
     ui->enddate->setDate(cd);
-
+    connect(ui->reload, SIGNAL(clicked()), this,SLOT(refresh()));
     enddate = QDateTime::currentDateTime().currentMSecsSinceEpoch();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
@@ -133,35 +134,70 @@ void MainWindow::process_json()
 {
 
     QJsonDocument jsonDoc = ReadJson(filename);
-    double low,high;
-    QString QHigh_date, QLow_date;
+    double low,high,open,close;
+    QDateTime dt;
+    double lowprice=0,highprice=0,lowopen=0,highopen=0,lowclose=0,highclose=0;
+    QString QHigh_date, QLow_date,QOpen_low_date,QOpen_high_date,QClose_low_date,QClose_high_date;
     for (int i=0;i<limit;i++)
     {
-        QString Qlow = jsonDoc[i][3].toString();
-        QString Qhigh = jsonDoc[i][2].toString();
-
+        QString Qopen = jsonDoc[i][1].toString(); // 1=open
+        QString Qhigh = jsonDoc[i][2].toString(); // 2=high
+        QString Qlow = jsonDoc[i][3].toString(); // 3=low
+        QString Qclose = jsonDoc[i][4].toString(); // 4=closes
         low = Qlow.toDouble();
         high = Qhigh.toDouble();
+        open = Qopen.toDouble();
+        close = Qclose.toDouble();
         if (lowprice > low || lowprice == 0) {
             lowprice=low;
-            double timestamp = jsonDoc[i][0].toDouble();
-            QDateTime dt;
+            double timestamp = jsonDoc[i][0].toDouble(); // open time
             dt.setMSecsSinceEpoch(timestamp);
             QLow_date = dt.toString("ddd d MMM - hh:mm");
         }
         if (highprice < high) {
             highprice=high;
-            double timestamp = jsonDoc[i][0].toDouble();
-            QDateTime dt;
+            double timestamp = jsonDoc[i][0].toDouble(); // open time
             dt.setMSecsSinceEpoch(timestamp);
             QHigh_date = dt.toString("ddd d MMM - hh:mm");
         }
-
+        if (lowopen > open || lowopen == 0) {
+            lowopen=open;
+            double timestamp = jsonDoc[i][0].toDouble(); // open time
+            dt.setMSecsSinceEpoch(timestamp);
+            QOpen_low_date = dt.toString("ddd d MMM - hh:mm");
+        }
+        if (highopen < open) {
+            highopen=open;
+            double timestamp = jsonDoc[i][0].toDouble(); // open time
+            dt.setMSecsSinceEpoch(timestamp);
+            QOpen_high_date = dt.toString("ddd d MMM - hh:mm");
+        }
+        if (lowclose > close || lowclose == 0) {
+            lowclose=open;
+            double timestamp = jsonDoc[i][6].toDouble(); // close time
+            dt.setMSecsSinceEpoch(timestamp);
+            QClose_low_date = dt.toString("ddd d MMM - hh:mm");
+        }
+        if (highclose < close) {
+            highclose=open;
+            double timestamp = jsonDoc[i][6].toDouble(); // close time
+            dt.setMSecsSinceEpoch(timestamp);
+            QClose_high_date = dt.toString("ddd d MMM - hh:mm");
+        }
     }
+    QDate cd = QDate::currentDate();
+    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
+    cd = cd.addDays(-(limit/days)-today);
     ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
-    ui->transferLog->appendPlainText("Pair: "+pair);
+    ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+cd.toString("ddd d MMM"));
+    //ui->transferLog->appendPlainText("--- Low ---");
     ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
+    ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
+    ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
+    //ui->transferLog->appendPlainText("--- High ---");
     ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',2) + " Date: " + QHigh_date);
+    ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',2) + " Date: " + QOpen_high_date);
+    ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',2) + " Date: " + QClose_high_date);
     double percent_change=(highprice/lowprice*100)-100;
     ui->transferLog->appendPlainText("Percent change: "+ QLocale(QLocale::English).toString(percent_change,'F',2)+"%");
     ui->transferLog->appendPlainText("------------------------");
@@ -202,8 +238,6 @@ void MainWindow::on_pairlist_activated(int index)
 {
     pair = ui->pairlist->currentText();
     limit = ui->lookbackdays->value()*days;
-    lowprice=0;
-    highprice=0;
     do_download();
 }
 
@@ -233,8 +267,6 @@ void MainWindow::refresh()
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
     ui->message->setText("Date of lookback "+ cd.toString("ddd d MMM yy"));
-    lowprice=0;
-    highprice=0;
     do_download();
 }
 

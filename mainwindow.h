@@ -25,12 +25,12 @@ public:
     QVariant loadsettings(QString settings);
     void savesettings(QString settings, QVariant attr);
     bool readJsonFile(QString file_path, QVariantMap& result);
-    void refresh();
+
     ~MainWindow();
 
 public slots:
     void replyFinished (QNetworkReply *reply);
-
+    void refresh();
 private slots:
     void on_pairlist_activated(int index);
 
