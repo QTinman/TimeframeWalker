@@ -139,7 +139,7 @@ void MainWindow::process_json()
     QJsonDocument jsonDoc = ReadJson(filename);
     double low,high,open,close;
     QDateTime dt;
-    double lowprice=0,highprice=0,lowopen=0,highopen=0,lowclose=0,highclose=0;
+    double lowprice=0,highprice=0,lowopen=0,highopen=0,lowclose=0,highclose=0, averageprice=0;
     QString QHigh_date, QLow_date,QOpen_low_date,QOpen_high_date,QClose_low_date,QClose_high_date;
     for (int i=0;i<limit;i++)
     {
@@ -151,6 +151,7 @@ void MainWindow::process_json()
         high = Qhigh.toDouble();
         open = Qopen.toDouble();
         close = Qclose.toDouble();
+        averageprice+=low+high;
         if (lowprice > low || lowprice == 0) {
             lowprice=low;
             double timestamp = jsonDoc[i][0].toDouble(); // open time
@@ -188,6 +189,8 @@ void MainWindow::process_json()
             QClose_high_date = dt.toString("ddd d MMM - hh:mm");
         }
     }
+    averageprice = averageprice/limit/2;
+    qDebug() << averageprice;
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
@@ -198,6 +201,7 @@ void MainWindow::process_json()
     ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
     ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
     //ui->transferLog->appendPlainText("--- High ---");
+    ui->transferLog->appendPlainText("Average price: "+ QLocale(QLocale::English).toString(averageprice,'F',2));
     ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',2) + " Date: " + QHigh_date);
     ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',2) + " Date: " + QOpen_high_date);
     ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',2) + " Date: " + QClose_high_date);
