@@ -284,13 +284,11 @@ void MainWindow::refresh()
         customtimeframe=false;
     } else {
         if (cd > QDate::currentDate()) {
-            cd = QDate::currentDate().addDays(-ui->forwarddays->value());
-            ui->startdate->setDate(cd);
             cd = QDate::currentDate();
+            ui->startdate->setDate(cd.addDays(-ui->forwarddays->value()));
             edt=QDateTime(ui->startdate->date(),QTime::currentTime());
             limit = ui->forwarddays->value()*days;
             startdate = edt.toMSecsSinceEpoch();
-            //cd = cd.addDays((limit/days)-today);
             ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
         }
         customtimeframe=false;
