@@ -195,7 +195,7 @@ void MainWindow::process_json()
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
     ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
-    ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+cd.toString("ddd d MMM"));
+    ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+ui->startdate->date().toString("ddd d MMM"));
     //ui->transferLog->appendPlainText("--- Low ---");
     ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
     ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
@@ -282,7 +282,7 @@ void MainWindow::refresh()
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-startdate)/86400000;
     cd = cd.addDays((limit/days)-today);
-    ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
+    ui->message->setText("Forward date: "+ ui->startdate->date().toString("ddd d MMM yy"));
     if ((limit > 1000 && customtimeframe)) {
         if (limit > 1000 && customtimeframe) ui->transferLog->appendPlainText("ERROR! Custom timeframe out of scope! Reduce days\n or use bigger timeframe.\n");
         customtimeframe=false;
@@ -293,7 +293,7 @@ void MainWindow::refresh()
             edt=QDateTime(ui->startdate->date(),QTime::currentTime());
             limit = ui->forwarddays->value()*days;
             startdate = edt.toMSecsSinceEpoch();
-            ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
+            ui->message->setText("Forward date: "+ ui->startdate->date().toString("ddd d MMM yy"));
         }
         customtimeframe=false;
         do_download();
