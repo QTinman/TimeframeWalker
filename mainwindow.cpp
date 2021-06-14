@@ -279,11 +279,20 @@ void MainWindow::refresh()
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-startdate)/86400000;
     cd = cd.addDays((limit/days)-today);
     ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
-    if ((limit > 1000 && customtimeframe) || cd > QDate::currentDate()) {
+    if ((limit > 1000 && customtimeframe)) {
         if (limit > 1000 && customtimeframe) ui->transferLog->appendPlainText("ERROR! Custom timeframe out of scope! Reduce days\n or use bigger timeframe.\n");
-        if (cd > QDate::currentDate()) ui->transferLog->appendPlainText("ERROR! Date + forward days cannot be greater than today.\n");
         customtimeframe=false;
     } else {
+        if (cd > QDate::currentDate()) {
+            cd = QDate::currentDate().addDays(-ui->forwarddays->value());
+            ui->startdate->setDate(cd);
+            cd = QDate::currentDate();
+            edt=QDateTime(ui->startdate->date(),QTime::currentTime());
+            limit = ui->forwarddays->value()*days;
+            startdate = edt.toMSecsSinceEpoch();
+            //cd = cd.addDays((limit/days)-today);
+            ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
+        }
         customtimeframe=false;
         do_download();
     }
