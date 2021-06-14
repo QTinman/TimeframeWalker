@@ -3,3 +3,5 @@ Downloads candle data from binance and show highest and lowest prices of selecte
 
 
 ![Welcome screen](https://github.com/QTinman/TimeframeWalker/blob/main/timeframewalker.png)
+
+
