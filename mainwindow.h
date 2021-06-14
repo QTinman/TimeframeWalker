@@ -34,9 +34,11 @@ public slots:
 private slots:
     void on_pairlist_activated(int index);
 
-    void on_lookbackdays_editingFinished();
+    void on_forwarddays_editingFinished();
 
-    void on_enddate_editingFinished();
+    void on_startdate_editingFinished();
+
+    void on_timeframes_activated(int index);
 
 private:
     Ui::MainWindow *ui;

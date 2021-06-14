@@ -25,6 +25,16 @@
     <item row="1" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
+       <widget class="QComboBox" name="timeframes">
+        <property name="maximumSize">
+         <size>
+          <width>35</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="message">
         <property name="text">
          <string/>
@@ -60,31 +70,14 @@
        <widget class="QComboBox" name="pairlist"/>
       </item>
       <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Lookback days</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="lookbackdays">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Enddate</string>
+         <string>Startdate</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QDateEdit" name="enddate">
+       <widget class="QDateEdit" name="startdate">
         <property name="dateTime">
          <datetime>
           <hour>0</hour>
@@ -97,6 +90,23 @@
         </property>
         <property name="displayFormat">
          <string>dd.MM.yy</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Forward days</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="forwarddays">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
         </property>
        </widget>
       </item>

@@ -5,8 +5,10 @@
 QString appgroup="buysellmonitor";
 QString filename="candledata.json",pair="BTCUSDT",timeframe="1h";
 
-long enddate;
+long startdate;
 int limit=24,days=24;
+QStringList timeframes={"1h","2h","4h","8h","1d"};
+bool customtimeframe=false;
 QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CAKEUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICPUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","KSMUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","PAXUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SHIBUSDT","SKLUSDT","SNXUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XRPUSDT","XTZUSDT","XVGUSDT","XVSUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
 
 
@@ -15,24 +17,25 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    QDateTime cdt=QDateTime::currentDateTime().addDays(-1);
     this->setWindowTitle("Timeframe Walker");
     setGeometry(loadsettings("position").toRect());
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
     ui->pairlist->addItems(pairlist);
     ui->pairlist->setCurrentText(pair);
+    ui->timeframes->addItems(timeframes);
+    ui->timeframes->setCurrentText(timeframe);
     QDate cd = QDate::currentDate();
-    ui->enddate->setDate(cd);
+    ui->startdate->setDate(cd.addDays(-1));
     connect(ui->reload, SIGNAL(clicked()), this,SLOT(refresh()));
-    enddate = QDateTime::currentDateTime().currentMSecsSinceEpoch();
-    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
-    cd = cd.addDays(-(limit/days)-today);
-    ui->message->setText("Date of lookback "+ cd.toString("ddd d MMM yy"));
-    ui->lookbackdays->setValue(limit/days);
+    startdate = cdt.currentMSecsSinceEpoch()-86400000;
+    //int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
+    //cd = cd.addDays((limit/days)-today);
+    ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
+    ui->forwarddays->setValue(limit/days);
     pair=ui->pairlist->currentText();
     do_download();
-
-
 }
 
 MainWindow::~MainWindow()
@@ -43,9 +46,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::do_download()
 {
-        QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit))+"&endTime="+QString::number(enddate));
+        QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit))+"&startTime="+QString::number(startdate));
         //QUrl url = QUrl(QString("https://www.binance.com/api/v3/depth?symbol=BTCUSDT"));
-
+        //qDebug() << "https://www.binance.com/api/v3/klines?symbol=" << pair << "&interval=" << timeframe << "&limit=" << QString::number(limit) << "&startTime=" << QString::number(startdate);
         QNetworkRequest request(url);
         manager->get(request);
 
@@ -143,7 +146,7 @@ void MainWindow::process_json()
         QString Qopen = jsonDoc[i][1].toString(); // 1=open
         QString Qhigh = jsonDoc[i][2].toString(); // 2=high
         QString Qlow = jsonDoc[i][3].toString(); // 3=low
-        QString Qclose = jsonDoc[i][4].toString(); // 4=closes
+        QString Qclose = jsonDoc[i][4].toString(); // 4=close
         low = Qlow.toDouble();
         high = Qhigh.toDouble();
         open = Qopen.toDouble();
@@ -186,7 +189,7 @@ void MainWindow::process_json()
         }
     }
     QDate cd = QDate::currentDate();
-    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
+    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
     ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
     ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+cd.toString("ddd d MMM"));
@@ -237,46 +240,67 @@ void MainWindow::replyFinished (QNetworkReply *reply)
 void MainWindow::on_pairlist_activated(int index)
 {
     pair = ui->pairlist->currentText();
-    limit = ui->lookbackdays->value()*days;
+    limit = ui->forwarddays->value()*days;
     do_download();
 }
 
 void MainWindow::refresh()
 {
-    QDateTime edt=QDateTime(ui->enddate->date(),QTime::currentTime());
+    QDateTime edt=QDateTime(ui->startdate->date(),QTime::currentTime());
     pair = ui->pairlist->currentText();
-    if (ui->lookbackdays->value() <= 41) {
+    if (ui->forwarddays->value() <= 41 && !customtimeframe) {
         timeframe = "1h";
         days=24;
-    } else if (ui->lookbackdays->value() >= 42 && ui->lookbackdays->value() <= 82) {
+    } else if (ui->forwarddays->value() >= 42 && ui->forwarddays->value() <= 82 && !customtimeframe) {
         timeframe = "2h";
         days=12;
-    } else if (ui->lookbackdays->value() >= 83 && ui->lookbackdays->value() <= 164) {
+    } else if (ui->forwarddays->value() >= 83 && ui->forwarddays->value() <= 164 && !customtimeframe) {
         timeframe = "4h";
         days=6;
-    } else if (ui->lookbackdays->value() >= 165 && ui->lookbackdays->value() <= 329) {
+    } else if (ui->forwarddays->value() >= 165 && ui->forwarddays->value() <= 329 && !customtimeframe) {
         timeframe = "8h";
         days=3;
-    } else {
+    } else if (!customtimeframe) {
         timeframe = "1d";
         days=1;
     }
-    limit = ui->lookbackdays->value()*days;
-    enddate = edt.toMSecsSinceEpoch();
+    if (customtimeframe) {
+        timeframe = ui->timeframes->currentText();
+        if (timeframe=="1h") days=24;
+        if (timeframe=="2h") days=12;
+        if (timeframe=="4h") days=6;
+        if (timeframe=="8h") days=3;
+        if (timeframe=="1d") days=1;
+    }
+
+    limit = ui->forwarddays->value()*days;
+    startdate = edt.toMSecsSinceEpoch();
     QDate cd = QDate::currentDate();
-    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-enddate)/86400000;
-    cd = cd.addDays(-(limit/days)-today);
-    ui->message->setText("Date of lookback "+ cd.toString("ddd d MMM yy"));
-    do_download();
+    int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()-startdate)/86400000;
+    cd = cd.addDays((limit/days)-today);
+    ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
+    if (limit > 1000 && customtimeframe) {
+        ui->transferLog->appendPlainText("ERROR! Custom timeframe out of scope! Reduce days\n or use bigger timeframe.\n");
+        customtimeframe=false;
+    } else {
+        customtimeframe=false;
+        do_download();
+    }
 }
 
-void MainWindow::on_lookbackdays_editingFinished()
+void MainWindow::on_forwarddays_editingFinished()
 {
     refresh();
 }
 
-void MainWindow::on_enddate_editingFinished()
+void MainWindow::on_startdate_editingFinished()
 {
     refresh();
 }
 
+
+void MainWindow::on_timeframes_activated(int index)
+{
+    customtimeframe=true;
+    refresh();
+}
