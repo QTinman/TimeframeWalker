@@ -35,6 +35,17 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="reload">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="resources.qrc">
+          <normaloff>:/new/icon/reload.png</normaloff>:/new/icon/reload.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -88,17 +99,6 @@
         <property name="icon">
          <iconset resource="resources.qrc">
           <normaloff>:/new/icon/rsi.png</normaloff>:/new/icon/rsi.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="reload">
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="resources.qrc">
-          <normaloff>:/new/icon/reload.png</normaloff>:/new/icon/reload.png</iconset>
         </property>
        </widget>
       </item>

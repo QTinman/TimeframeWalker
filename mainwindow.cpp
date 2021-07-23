@@ -31,8 +31,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->startdate->setDate(cd.addDays(-1));
     connect(ui->reload, SIGNAL(clicked()), this,SLOT(reload_pressed()));
     startdate = cdt.currentMSecsSinceEpoch()-86400000;
-    //int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
-    //cd = cd.addDays((limit/days)-today);
     ui->message->setText("Forward date: "+ cd.toString("ddd d MMM yy"));
     ui->forwarddays->setValue(limit/days);
     pair=ui->pairlist->currentText();
@@ -48,9 +46,6 @@ MainWindow::~MainWindow()
 void MainWindow::do_download()  // Docs https://binance-docs.github.io/apidocs/spot/en/
 {
         QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit))+"&startTime="+QString::number(startdate));
-        //QUrl url = QUrl(QString("https://www.binance.com/api/v3/depth?symbol=BTCUSDT"));
-        //qDebug() << "https://www.binance.com/api/v3/klines?symbol=" << pair << "&interval=" << timeframe << "&limit=" << QString::number(limit) << "&startTime=" << QString::number(startdate);
-        //qDebug() << pair << " " << rsi;
         QNetworkRequest request(url);
         manager->get(request);
 
@@ -383,8 +378,12 @@ void MainWindow::on_rsi_calc_pressed()
     limit=33;
     startdate = QDateTime(QDate::currentDate(),QTime::currentTime()).toMSecsSinceEpoch()-(3600000*candles);
     if (ui->seekAll->isChecked()) {
-        ui->transferLog->appendPlainText("RSI search - Timeframe "+ timeframe);
+        ui->transferLog->appendPlainText("RSI search < "+QString::number(ui->rsi->value())+" - Timeframe "+ timeframe);
         ui->message->setText("RSI searching...Please wait");
+        QString tmpPair=pair;
+        ui->reload->setHidden(true);
+        ui->seekAll->setText("Cancel");
+        ui->timeframes->setHidden(true);
         for ( const auto& i : pairlist  ) {
             if(ui->message->isHidden())
                 ui->message->show();
@@ -392,11 +391,18 @@ void MainWindow::on_rsi_calc_pressed()
                 ui->message->hide();
           pair=i;
           do_download();
+          ui->pairlist->setCurrentText(pair);
+          if (!ui->seekAll->isChecked()) break;
           delay();
         }
         if(ui->message->isHidden()) ui->message->show();
         ui->transferLog->appendPlainText("------------------------");
         ui->seekAll->setChecked(false);
+        ui->reload->setHidden(false);
+        ui->seekAll->setText("Seek all");
+        ui->timeframes->setHidden(false);
+        pair=tmpPair;
+        ui->pairlist->setCurrentText(pair);
         ui->message->setText("RSI search done!");
     } else do_download();
 
