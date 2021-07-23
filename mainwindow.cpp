@@ -141,19 +141,14 @@ double calc_rsi(QStringList rsi_list)
     double avgGain=0,avgLoss=0,rsi=0;
     for (int i=1;i<samples;i++ ) {
         double value=rsi_list[i].toDouble();
-        //qDebug() << value << " " << i;
         if (value>=0) avgGain+=value;
         else avgLoss+=value*-1;
         counter++;
     }
     avgGain/=counter;
     avgLoss/=counter;
-    //qDebug() << counter << " " << rsi_list.count() << " " << avgGain << " " << avgLoss;
     for (int i=counter+1;i<rsi_list.count();i++) {
         double value=rsi_list[i].toDouble();
-        //if (i==31) qDebug() << rsi_list[i] << " " << rsi_list[i+1];
-        //if (i==31) value = -rsi_list[i+1].toDouble()-rsi_list[i].toDouble();
-        //qDebug() << value << " " << i;
         if (value>=0) {
             avgGain=(avgGain*(13)+value)/14;
             avgLoss=(avgLoss*(13))/14;
@@ -162,7 +157,6 @@ double calc_rsi(QStringList rsi_list)
             avgLoss=(avgLoss*(13)+value)/14;
             avgGain=(avgGain*(13))/14;
         }
-        //qDebug() << avgGain << " " << avgLoss;
     }
     double rs=avgGain/avgLoss;
     rsi=100-(100/(1+rs));
@@ -185,13 +179,11 @@ void MainWindow::process_json()
         QString Qclose = jsonDoc[i][4].toString(); // 4=close
         if (i==0) rsi_list.append(QString::number(Qclose.toDouble()-Qopen.toDouble()));
         if (i>0) rsi_list.append(QString::number(Qclose.toDouble()-previous_close));
-        //qDebug() << Qclose << " " << previous_close << " " << (Qclose.toDouble()-previous_close) << " " << i;
         previous_close=Qclose.toDouble();
         low = Qlow.toDouble();
         high = Qhigh.toDouble();
         open = Qopen.toDouble();
         close = Qclose.toDouble();
-        //qDebug() << Qclose;
         averageprice+=low+high;
         if (lowprice > low || lowprice == 0) {
             lowprice=low;
@@ -232,16 +224,7 @@ void MainWindow::process_json()
     }
     averageprice = averageprice/limit/2;
     double rsi=0;
-    if (limit==33) {
-        if (rsi_list.count()>=14) rsi = calc_rsi(rsi_list);
-
-        //qDebug() << 100-(100/(1+(gain_perc/-loss_perc)));
-        //qDebug() << 100-(100/1+(gain_perc)/(loss_perc));
-        //qDebug() << average_gain << " " << average_loss << " " << gain_perc << " " << loss_perc;
-
-
-        //if (rsi<40) qDebug() << pair << " " << rsi << " " << previous_close << " " << dt.toString("ddd d MMM - hh:mm");
-    }
+    if (limit==33) rsi = calc_rsi(rsi_list);
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
