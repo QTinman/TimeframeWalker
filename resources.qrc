@@ -2,5 +2,6 @@
     <qresource prefix="/new/icon">
         <file>t_black.png</file>
         <file>reload.png</file>
+        <file>rsi.png</file>
     </qresource>
 </RCC>

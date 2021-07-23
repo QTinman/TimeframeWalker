@@ -26,9 +26,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pairlist->setCurrentText(pair);
     ui->timeframes->addItems(timeframes);
     ui->timeframes->setCurrentText(timeframe);
+    ui->rsi->setValue(35);
     QDate cd = QDate::currentDate();
     ui->startdate->setDate(cd.addDays(-1));
-    connect(ui->reload, SIGNAL(clicked()), this,SLOT(refresh()));
+    connect(ui->reload, SIGNAL(clicked()), this,SLOT(reload_pressed()));
     startdate = cdt.currentMSecsSinceEpoch()-86400000;
     //int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     //cd = cd.addDays((limit/days)-today);
@@ -44,11 +45,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::do_download()
+void MainWindow::do_download()  // Docs https://binance-docs.github.io/apidocs/spot/en/
 {
         QUrl url = QUrl(QString("https://www.binance.com/api/v3/klines?symbol="+pair+"&interval="+timeframe+"&limit="+QString::number(limit))+"&startTime="+QString::number(startdate));
         //QUrl url = QUrl(QString("https://www.binance.com/api/v3/depth?symbol=BTCUSDT"));
         //qDebug() << "https://www.binance.com/api/v3/klines?symbol=" << pair << "&interval=" << timeframe << "&limit=" << QString::number(limit) << "&startTime=" << QString::number(startdate);
+        //qDebug() << pair << " " << rsi;
         QNetworkRequest request(url);
         manager->get(request);
 
@@ -133,11 +135,45 @@ bool MainWindow::readJsonFile(QString file_path, QVariantMap& result)
     return true;
 }
 
+double calc_rsi(QStringList rsi_list)
+{
+    int counter=0,samples=15;
+    double avgGain=0,avgLoss=0,rsi=0;
+    for (int i=1;i<samples;i++ ) {
+        double value=rsi_list[i].toDouble();
+        //qDebug() << value << " " << i;
+        if (value>=0) avgGain+=value;
+        else avgLoss+=value*-1;
+        counter++;
+    }
+    avgGain/=counter;
+    avgLoss/=counter;
+    //qDebug() << counter << " " << rsi_list.count() << " " << avgGain << " " << avgLoss;
+    for (int i=counter+1;i<rsi_list.count();i++) {
+        double value=rsi_list[i].toDouble();
+        //if (i==31) qDebug() << rsi_list[i] << " " << rsi_list[i+1];
+        //if (i==31) value = -rsi_list[i+1].toDouble()-rsi_list[i].toDouble();
+        //qDebug() << value << " " << i;
+        if (value>=0) {
+            avgGain=(avgGain*(13)+value)/14;
+            avgLoss=(avgLoss*(13))/14;
+        } else {
+            value*=-1;
+            avgLoss=(avgLoss*(13)+value)/14;
+            avgGain=(avgGain*(13))/14;
+        }
+        //qDebug() << avgGain << " " << avgLoss;
+    }
+    double rs=avgGain/avgLoss;
+    rsi=100-(100/(1+rs));
+    return rsi;
+}
+
 void MainWindow::process_json()
 {
-
+    QStringList rsi_list;
     QJsonDocument jsonDoc = ReadJson(filename);
-    double low,high,open,close;
+    double low,high,open,close,previous_close=0;
     QDateTime dt;
     double lowprice=0,highprice=0,lowopen=0,highopen=0,lowclose=0,highclose=0, averageprice=0;
     QString QHigh_date, QLow_date,QOpen_low_date,QOpen_high_date,QClose_low_date,QClose_high_date;
@@ -147,10 +183,15 @@ void MainWindow::process_json()
         QString Qhigh = jsonDoc[i][2].toString(); // 2=high
         QString Qlow = jsonDoc[i][3].toString(); // 3=low
         QString Qclose = jsonDoc[i][4].toString(); // 4=close
+        if (i==0) rsi_list.append(QString::number(Qclose.toDouble()-Qopen.toDouble()));
+        if (i>0) rsi_list.append(QString::number(Qclose.toDouble()-previous_close));
+        //qDebug() << Qclose << " " << previous_close << " " << (Qclose.toDouble()-previous_close) << " " << i;
+        previous_close=Qclose.toDouble();
         low = Qlow.toDouble();
         high = Qhigh.toDouble();
         open = Qopen.toDouble();
         close = Qclose.toDouble();
+        //qDebug() << Qclose;
         averageprice+=low+high;
         if (lowprice > low || lowprice == 0) {
             lowprice=low;
@@ -190,24 +231,41 @@ void MainWindow::process_json()
         }
     }
     averageprice = averageprice/limit/2;
-    qDebug() << averageprice;
+    double rsi=0;
+    if (limit==33) {
+        if (rsi_list.count()>=14) rsi = calc_rsi(rsi_list);
+
+        //qDebug() << 100-(100/(1+(gain_perc/-loss_perc)));
+        //qDebug() << 100-(100/1+(gain_perc)/(loss_perc));
+        //qDebug() << average_gain << " " << average_loss << " " << gain_perc << " " << loss_perc;
+
+
+        //if (rsi<40) qDebug() << pair << " " << rsi << " " << previous_close << " " << dt.toString("ddd d MMM - hh:mm");
+    }
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
-    ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
-    ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+ui->startdate->date().toString("ddd d MMM"));
-    //ui->transferLog->appendPlainText("--- Low ---");
-    ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
-    ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
-    ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
-    //ui->transferLog->appendPlainText("--- High ---");
-    ui->transferLog->appendPlainText("Average price: "+ QLocale(QLocale::English).toString(averageprice,'F',2));
-    ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',2) + " Date: " + QHigh_date);
-    ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',2) + " Date: " + QOpen_high_date);
-    ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',2) + " Date: " + QClose_high_date);
-    double percent_change=(highprice/lowprice*100)-100;
-    ui->transferLog->appendPlainText("Percent change: "+ QLocale(QLocale::English).toString(percent_change,'F',2)+"%");
-    ui->transferLog->appendPlainText("------------------------");
+    if (!ui->seekAll->isChecked()) {
+        ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
+        ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+ui->startdate->date().toString("ddd d MMM"));
+        //ui->transferLog->appendPlainText("--- Low ---");
+        ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
+        ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
+        ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
+        //ui->transferLog->appendPlainText("--- High ---");
+        ui->transferLog->appendPlainText("Average price: "+ QLocale(QLocale::English).toString(averageprice,'F',2));
+        if (limit==33) ui->transferLog->appendPlainText("RSI: "+ QLocale(QLocale::English).toString(rsi,'F',2));
+        ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',2) + " Date: " + QHigh_date);
+        ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',2) + " Date: " + QOpen_high_date);
+        ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',2) + " Date: " + QClose_high_date);
+        double percent_change=(highprice/lowprice*100)-100;
+        ui->transferLog->appendPlainText("Percent change: "+ QLocale(QLocale::English).toString(percent_change,'F',2)+"%");
+        ui->transferLog->appendPlainText("------------------------");
+    } else {
+        if (ui->rsi->value() >= rsi) {
+            ui->transferLog->appendPlainText(pair+" Last close "+QLocale(QLocale::English).toString(previous_close,'F',2)+" RSI "+QLocale(QLocale::English).toString(rsi,'F',2));
+        }
+    }
 }
 
 void MainWindow::replyFinished (QNetworkReply *reply)
@@ -246,6 +304,12 @@ void MainWindow::on_pairlist_activated(int index)
     pair = ui->pairlist->currentText();
     limit = ui->forwarddays->value()*days;
     do_download();
+}
+
+void MainWindow::reload_pressed()
+{
+    customtimeframe=true;
+    refresh();
 }
 
 void MainWindow::refresh()
@@ -315,4 +379,42 @@ void MainWindow::on_timeframes_activated(int index)
 {
     customtimeframe=true;
     refresh();
+}
+
+void delay()
+{
+    QTime dieTime= QTime::currentTime().addMSecs(1000);
+    while (QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
+
+void MainWindow::on_rsi_calc_pressed()
+{
+    int candles=0;
+    timeframe = ui->timeframes->currentText();
+    if (timeframe=="1h") candles=33;
+    if (timeframe=="2h") candles=66;
+    if (timeframe=="4h") candles=132;
+    if (timeframe=="8h") candles=364;
+    if (timeframe=="1d") candles=792;
+    limit=33;
+    startdate = QDateTime(QDate::currentDate(),QTime::currentTime()).toMSecsSinceEpoch()-(3600000*candles);
+    if (ui->seekAll->isChecked()) {
+        ui->transferLog->appendPlainText("RSI search - Timeframe "+ timeframe);
+        ui->message->setText("RSI searching...Please wait");
+        for ( const auto& i : pairlist  ) {
+            if(ui->message->isHidden())
+                ui->message->show();
+            else
+                ui->message->hide();
+          pair=i;
+          do_download();
+          delay();
+        }
+        if(ui->message->isHidden()) ui->message->show();
+        ui->transferLog->appendPlainText("------------------------");
+        ui->seekAll->setChecked(false);
+        ui->message->setText("RSI search done!");
+    } else do_download();
+
 }

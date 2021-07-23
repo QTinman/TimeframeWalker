@@ -31,6 +31,7 @@ public:
 public slots:
     void replyFinished (QNetworkReply *reply);
     void refresh();
+    void reload_pressed();
 private slots:
     void on_pairlist_activated(int index);
 
@@ -39,6 +40,8 @@ private slots:
     void on_startdate_editingFinished();
 
     void on_timeframes_activated(int index);
+
+    void on_rsi_calc_pressed();
 
 private:
     Ui::MainWindow *ui;
