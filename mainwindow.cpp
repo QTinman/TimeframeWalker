@@ -227,6 +227,7 @@ void MainWindow::process_json()
         ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
         ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+ui->startdate->date().toString("ddd d MMM"));
         //ui->transferLog->appendPlainText("--- Low ---");
+        ui->transferLog->appendPlainText("Last close "+QLocale(QLocale::English).toString(previous_close,'F',2));
         ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
         ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
         ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
