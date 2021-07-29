@@ -7,9 +7,21 @@ QString filename="candledata.json",pair="BTCUSDT",timeframe="1h";
 
 long startdate;
 int limit=24,days=24;
-QStringList timeframes={"1h","2h","4h","8h","1d"};
+QStringList timeframes={"5m","1h","2h","4h","8h","1d"};
 bool customtimeframe=false;
-QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT","AVAXUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT","CAKEUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT","DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT","ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT","ICPUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","KSMUSDT","LINKUSDT","LPTUSDT","LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT","NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","PAXUSDT","QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SHIBUSDT","SKLUSDT","SNXUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUSHIUSDT","SXPUSDT","TFUELUSDT","THETAUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT","WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XRPUSDT","XTZUSDT","XVGUSDT","XVSUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT","ZRXUSDT"};
+QStringList pairlist = {"1INCHUSDT","AAVEUSDT","ADAUSDT","ALGOUSDT","ALICEUSDT","ALPHAUSDT","ANKRUSDT","ANTUSDT","ARUSDT","ARDRUSDT","ATOMUSDT",
+                        "AVAXUSDT","AXSUSDT","BAKEUSDT","BALUSDT","BANDUSDT","BATUSDT","BCHUSDT","BNTUSDT","BTCUSDT","BTCSTUSDT","BTGUSDT","BTSUSDT","BTTUSDT",
+                        "CAKEUSDT","CELOUSDT","CELRUSDT","CFXUSDT","CHZUSDT","CKBUSDT","COMPUSDT","COTIUSDT","CRVUSDT","CTSIUSDT","CVCUSDT",
+                        "DASHUSDT","DATAUSDT","DCRUSDT","DENTUSDT","DGBUSDT","DODOUSDT","DOGEUSDT","DOTUSDT","EGLDUSDT","ENJUSDT","EOSUSDT",
+                        "ETCUSDT","ETHUSDT","FETUSDT","FILUSDT","FTMUSDT","FTTUSDT","FUNUSDT","GRTUSDT","HBARUSDT","HIVEUSDT","HNTUSDT","HOTUSDT",
+                        "ICPUSDT","ICXUSDT","INJUSDT","IOSTUSDT","IOTXUSDT","JSTUSDT","KAVAUSDT","KMDUSDT","KNCUSDT","KSMUSDT","LINKUSDT","LPTUSDT",
+                        "LRCUSDT","LSKUSDT","LTCUSDT","LUNAUSDT","MANAUSDT","MATICUSDT","MDXUSDT","MKRUSDT","MTLUSDT","NANOUSDT","NEARUSDT",
+                        "NEOUSDT","NKNUSDT","NMRUSDT","NUUSDT","OCEANUSDT","OGNUSDT","OMGUSDT","ONEUSDT","ONGUSDT","ONTUSDT","OXTUSDT","PAXUSDT",
+                        "QTUMUSDT","REEFUSDT","RENUSDT","REPUSDT","RIFUSDT","RLCUSDT","RSRUSDT","RUNEUSDT","RVNUSDT","SANDUSDT","SCUSDT","SHIBUSDT",
+                        "SKLUSDT","SNXUSDT","SOLUSDT","SRMUSDT","STMXUSDT","STORJUSDT","STRAXUSDT","STXUSDT","SUNUSDT","SUPERUSDT","SUSHIUSDT",
+                        "SXPUSDT","TFUELUSDT","THETAUSDT","TKOUSDT","TRXUSDT","UMAUSDT","UNIUSDT","VETUSDT","VTHOUSDT","WAVESUSDT","WINUSDT",
+                        "WRXUSDT","XEMUSDT","XLMUSDT","XMRUSDT","XRPUSDT","XTZUSDT","XVGUSDT","XVSUSDT","YFIUSDT","ZECUSDT","ZENUSDT","ZILUSDT",
+                        "ZRXUSDT"};
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -223,26 +235,30 @@ void MainWindow::process_json()
     QDate cd = QDate::currentDate();
     int today=(QDateTime::currentDateTime().currentMSecsSinceEpoch()+startdate)/86400000;
     cd = cd.addDays(-(limit/days)-today);
+    int trailingZeros=2;
+    if (previous_close<0.001) trailingZeros=7;
+    if (previous_close<0.1&&previous_close>0.001) trailingZeros=5;
+    //qDebug() << trailingZeros << " " << previous_close;
     if (!ui->seekAll->isChecked()) {
         ui->transferLog->appendPlainText("Timeframe: "+timeframe+" - Number of candles: "+QString::number(limit));
         ui->transferLog->appendPlainText("Pair: "+pair+" Startdate: "+ui->startdate->date().toString("ddd d MMM"));
         //ui->transferLog->appendPlainText("--- Low ---");
-        ui->transferLog->appendPlainText("Last close "+QLocale(QLocale::English).toString(previous_close,'F',2));
-        ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',2) + " Date: " + QLow_date);
-        ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',2) + " Date: " + QOpen_low_date);
-        ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',2) + " Date: " + QClose_low_date);
+        ui->transferLog->appendPlainText("Last close: "+QLocale(QLocale::English).toString(previous_close,'F',trailingZeros));
+        ui->transferLog->appendPlainText("Lowest price: "+ QLocale(QLocale::English).toString(lowprice,'F',trailingZeros) + " Date: " + QLow_date);
+        ui->transferLog->appendPlainText("Lowest open: "+ QLocale(QLocale::English).toString(lowopen,'F',trailingZeros) + " Date: " + QOpen_low_date);
+        ui->transferLog->appendPlainText("Lowest close: "+ QLocale(QLocale::English).toString(lowclose,'F',trailingZeros) + " Date: " + QClose_low_date);
         //ui->transferLog->appendPlainText("--- High ---");
-        ui->transferLog->appendPlainText("Average price: "+ QLocale(QLocale::English).toString(averageprice,'F',2));
+        ui->transferLog->appendPlainText("Average price: "+ QLocale(QLocale::English).toString(averageprice,'F',trailingZeros));
         if (limit==33) ui->transferLog->appendPlainText("RSI: "+ QLocale(QLocale::English).toString(rsi,'F',2));
-        ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',2) + " Date: " + QHigh_date);
-        ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',2) + " Date: " + QOpen_high_date);
-        ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',2) + " Date: " + QClose_high_date);
+        ui->transferLog->appendPlainText("Highest price: "+ QLocale(QLocale::English).toString(highprice,'F',trailingZeros) + " Date: " + QHigh_date);
+        ui->transferLog->appendPlainText("Highest open: "+ QLocale(QLocale::English).toString(highopen,'F',trailingZeros) + " Date: " + QOpen_high_date);
+        ui->transferLog->appendPlainText("Highest close: "+ QLocale(QLocale::English).toString(highclose,'F',trailingZeros) + " Date: " + QClose_high_date);
         double percent_change=(highprice/lowprice*100)-100;
         ui->transferLog->appendPlainText("Percent change: "+ QLocale(QLocale::English).toString(percent_change,'F',2)+"%");
         ui->transferLog->appendPlainText("------------------------");
     } else {
         if (ui->rsi->value() >= rsi) {
-            ui->transferLog->appendPlainText(pair+" Last close "+QLocale(QLocale::English).toString(previous_close,'F',2)+" RSI "+QLocale(QLocale::English).toString(rsi,'F',2));
+            ui->transferLog->appendPlainText(pair+" Last close "+QLocale(QLocale::English).toString(previous_close,'F',trailingZeros)+" RSI "+QLocale(QLocale::English).toString(rsi,'F',2));
         }
     }
 }
@@ -345,19 +361,19 @@ void MainWindow::refresh()
 
 void MainWindow::on_forwarddays_editingFinished()
 {
-    refresh();
+    //refresh();
 }
 
 void MainWindow::on_startdate_editingFinished()
 {
-    refresh();
+    //refresh();
 }
 
 
 void MainWindow::on_timeframes_activated(int index)
 {
     customtimeframe=true;
-    refresh();
+    //refresh();
 }
 
 void delay()
@@ -369,8 +385,9 @@ void delay()
 
 void MainWindow::on_rsi_calc_pressed()
 {
-    int candles=0;
+    double candles=0;
     timeframe = ui->timeframes->currentText();
+    if (timeframe=="5m") candles=2.75;
     if (timeframe=="1h") candles=33;
     if (timeframe=="2h") candles=66;
     if (timeframe=="4h") candles=132;
