@@ -304,6 +304,11 @@ void MainWindow::on_pairlist_activated(int index)
 void MainWindow::reload_pressed()
 {
     customtimeframe=true;
+    if (ui->timeframes->currentText() == "5m") {
+        timeframe = "1h";
+        days=24;
+        qDebug() << timeframe;
+    }
     refresh();
 }
 
@@ -311,6 +316,7 @@ void MainWindow::refresh()
 {
     QDateTime edt=QDateTime(ui->startdate->date(),QTime::currentTime());
     pair = ui->pairlist->currentText();
+
     if (ui->forwarddays->value() <= 41 && !customtimeframe) {
         timeframe = "1h";
         days=24;
